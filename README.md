@@ -37,7 +37,7 @@ The assistant operates as a containerized workload on a dedicated Google Cloud P
 To protect internal cloud infrastructure and satisfy strict platform access policies, the perimeter is heavily guarded. 
 
 <p align="center">
-  <img src="./docs/images/Router.jpg" alt="Router Security Code Snippet" width="75%">
+  <img src="./docs/images/Router.png" alt="Router Security Code Snippet" width="75%">
 </p>
 
 * **Implementation:** The incoming string is stripped down to its canonical phone number footprint and verified against a protected runtime array (`AUTHORIZED_SENDERS`). Unauthorized messages are dropped silently at the gate before consuming downstream AI tokens.
@@ -56,7 +56,7 @@ Turning messy human dialogue into deterministic records requires pairing an LLM 
 Because data is synchronized directly with external facing team spreadsheets, the application protects against CSV/Spreadsheet Formula Injection.
 
 <p align="center">
-  <img src="./docs/images/Sanitizer.jpg" alt="Sanitizer Logic Code Snippet" width="75%">
+  <img src="./docs/images/Sanitizer.png" alt="Sanitizer Logic Code Snippet" width="75%">
 </p>
 
 * **Implementation:** Any payload touching the database is processed by `escapeSpreadsheetFormula`. A regex pattern `/^[=+\-@]/` checks the first byte of incoming values. If an injection signature is discovered, the cell is prepended with a neutralizing single quote (`'`), rendering it as literal plain-text inside Google Sheets.
@@ -76,7 +76,7 @@ The architecture maintains complete separation of concerns between background wo
 Real-world systems face unexpected processing lockups, network splits, and API timeouts. Vecta uses a fault-tolerant state-machine architecture.
 
 <p align="center">
-  <img src="./docs/images/Remindercron.jpg" alt="Reminder Cron Logic Code Snippet" width="75%">
+  <img src="./docs/images/Remindercron.png" alt="Reminder Cron Logic Code Snippet" width="75%">
 </p>
 
 * **Implementation:** The background engine scans for items with a state of `processing` that exceed a 3-minute lock window, alongside explicit `failed` transactions. If the transaction has failed permanently (`retryCount >= 3`), it drops into a **Dead-Letter Queue (DLQ)** for manual auditing. Otherwise, it increments the retry value and transparently re-injects the message into the parsing queue.
