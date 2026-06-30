@@ -66,7 +66,7 @@ The architecture maintains complete separation of concerns between background wo
 
 <p align="center">
   <!-- Place your cropped Firestore screenshot here -->
-  <img src="./docs/images/image_90540e.png" alt="Cloud Firestore Document Lifecycle Tracking" width="70%">
+  <img src="./docs/images/firestore.png" alt="Cloud Firestore Document Lifecycle Tracking" width="70%">
 </p>
 
 * **Cloud Firestore:** Serves as the transactional operational memory, maintaining status keys (`pending`, `processing`, `sent`, `failed`), retry indexes, and locking metrics.
