@@ -64,7 +64,7 @@ To protect internal cloud infrastructure and satisfy strict platform access poli
 Turning messy human dialogue into deterministic records requires pairing an LLM with strict response schemas.
 
 <p align="center">
-  <img src="./docs/images/whatsapp-ocr.png" alt="WhatsApp Live Demo Screenshot" width="40%">
+  <img src="./docs/images/WhatsApp Image 2026-07-01 at 02.13.29.jpeg" alt="WhatsApp Live Demo Screenshot" width="40%">
   <img src="./docs/images/carbon (3).png" alt="Gemini JSON Output Schema" width="45%">
 </p>
 
