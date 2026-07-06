@@ -38,7 +38,7 @@ The assistant operates as a containerized microservice on a dedicated Google Clo
 Typing data into a bot is still friction. Vecta eliminates this by processing raw images (business cards, shop storefronts) entirely in memory.
 
 <p align="center">
-  <img src="./docs/images/image_def967.jpg" alt="WhatsApp OCR Live Demo Screenshot" width="75%">
+  <img src="./docs/images/Whatsaoo-ocr.png" alt="WhatsApp OCR Live Demo Screenshot" width="75%">
 </p>
 
 * **Implementation (`media.handler.ts` & `gemini.ts`):** When an image is received, it is downloaded directly to an in-memory buffer and piped to the Gemini 2.5 Flash Vision model. The prompt forces a strictly typed JSON return containing `companyName`, `phoneNumber`, and a `confidenceLevel`.
