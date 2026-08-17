@@ -1,111 +1,158 @@
-# # Vecta Assistant: Production-Grade WhatsApp AI Sales Companion
+# 📱 Enterprise Multimodal WhatsApp AI Assistant & Cross-Project Ledger Engine
 
-An event-driven, production-ready WhatsApp assistant engineered using **Node.js**, **TypeScript**, and **Gemini 2.5 Flash**. This system completely automates the pipeline from capturing unstructured text and images post-client meetings to structured dual-write persistence in Cloud Firestore and Google Sheets CRM, complete with an autonomous background scheduler and enterprise CI/CD auto-rollback deployment.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
+[![Gemini AI](https://img.shields.io/badge/Gemini%20AI-2.5%20Flash-orange.svg)](https://deepmind.google/technologies/gemini/)
+[![Firebase](https://img.shields.io/badge/Firebase-Admin%20SDK-yellow.svg)](https://firebase.google.com/)
+[![Docker](https://img.shields.io/badge/Docker-Multi--stage-blue.svg)](https://www.docker.com/)
 
----
+An event-driven, enterprise-grade WhatsApp AI platform built using **TypeScript**, **Node.js**, **Google Gemini 2.5 Flash**, **Firebase Admin SDK**, **Google BigQuery**, and **Google Sheets API**.
 
-## 🚀 The Core Philosophy
-
-Manual data entry after client meetings is an energy drain. Getting a business card or contact number shouldn't trigger an hour of administrative busywork. 
-
-**Vecta Assistant** allows a professional to bypass data entry entirely. By sending a raw text message, voice note, or simply snapping a photo of a business card directly inside WhatsApp, the underlying system extracts the entity metadata, performs native date-math anchored to the **Asia/Dubai** timezone, secures the data downstream, updates corporate sheets, and establishes automated self-healing follow-up loops.
-
----
-
-## 🗺️ System Architecture
-
-The assistant operates as a containerized microservice on a dedicated Google Cloud Platform (GCP) Virtual Machine. It decouples state by utilizing Firebase Realtime Database for stateless Baileys authentication handling and local volume mounts for session lock preservation.
-
-<p align="center">
-  <img src="./docs/images/Architecture.jpg" alt="System Architecture Diagram" width="85%">
-</p>
-
-### End-to-End Data Lifecycle:
-1. **Ingestion:** Text and in-memory media image payloads are picked up over a persistent WebSocket connection handled by the **Baileys Engine**.
-2. **Security Check:** The `router.ts` engine matches sender data against an authorized whitelist, silently discarding unauthenticated spam.
-3. **Idempotency Guarantee:** A Firestore transaction lock checks `msgId` to ensure identical network retries are never processed twice.
-4. **Multimodal LLM Extraction:** Gemini 2.5 Flash processes the unstructured string or raw image buffer against strict structural JSON schemas.
-5. **Human-in-the-Loop (HITL):** Image OCR extractions are temporarily cached. The system waits for human verification (e.g., replying "Ok") before executing database writes.
-6. **Defensive Sanitization:** String fields run through a regex shield to block executable scripts and spreadsheet injection parameters.
-7. **Dual-Write State Update:** Verified records are concurrently committed to **Cloud Firestore** and appended to a **Google Sheets CRM**.
-8. **Background Cron Processing:** A high-frequency worker sweeps records every 60 seconds, handling event tracking, automated messaging loops, and error-recovery pipelines.
+This platform combines two core enterprise subsystems:
+1. **Multimodal Sales CRM & Task Scheduler**: Bypasses manual entry by extracting contact/meeting details from raw text or business card images, enforcing GST (`Asia/Dubai`) timezone math, and syncing dual-write updates to Cloud Firestore and Google Sheets CRM.
+2. **Cross-Project Cash Reconciliation & Ledger Reversal Engine ("Ferrari Foods")**: Solves the administrative pain of manually searching and correcting database entries by utilizing AI OCR image parsing, multi-branch parallel queries, atomic 5-collection Firestore batch deletions, dynamic vault note inventory updates, and immutable non-repudiation audit logging across isolated GCP environments.
 
 ---
 
-## 🛠️ Deep Dive: Core Features & Implementations
+## 🗺️ Multi-Cloud & Cross-Project Architecture
 
-### 👁️ 1. Multimodal AI Extraction (Zero-Type Pipeline)
-Typing data into a bot is still friction. Vecta eliminates this by processing raw images (business cards, shop storefronts) entirely in memory.
+The microservice bridges two independent Google Cloud Platform / Firebase projects through IAM Service Accounts:
 
-<p align="center">
-  <img src="./docs/images/Whatsaoo-ocr.png" alt="WhatsApp OCR Live Demo Screenshot" width="75%">
-</p>
-
-* **Implementation (`media.handler.ts` & `gemini.ts`):** When an image is received, it is downloaded directly to an in-memory buffer and piped to the Gemini 2.5 Flash Vision model. The prompt forces a strictly typed JSON return containing `companyName`, `phoneNumber`, and a `confidenceLevel`.
-* **Human-in-the-Loop (HITL):** LLM hallucination in automated CRM entry is dangerous. Vecta caches the OCR payload in Firestore and asks the user for confirmation. Only upon a recognized regex approval ("ok", "save") does the system trigger the final persistence pipeline.
-
-### ⚙️ 2. Enterprise DevOps ("Suspend, Swap, & Verify" CI/CD)
-Deploying stateful WebSocket applications introduces a massive infrastructure challenge: the Baileys library requires a strict, exclusive lock on WhatsApp authentication files. Standard Blue-Green deployments cause fatal session collisions.
-
-* **Implementation (`deploy.yml`):** Vecta uses a custom GitHub Actions pipeline. On a push to `main`, the pipeline gracefully suspends the active container to cleanly release the SQLite session lock. It then swaps in the newly built container, re-mounting the persistent `auth_session_cache` volume.
-* **Automated Rollback & Health Checks:** The pipeline injects a 35-second stabilization window and polls the Docker daemon's `HEALTHCHECK`. If the new Node.js runtime crashes, the system instantly tears down the broken container and revives the cold-storage backup—guaranteeing 24/7 uptime and zero authentication cache corruption.
-* **Resource Fencing:** Containers are strictly deployed with `--memory="3.5g"` limits to prevent OOM (Out of Memory) crashes during heavy image buffer processing, and `--log-opt max-size=50m` to prevent VM disk exhaustion.
-
-### 🔒 3. Edge Security & Meta Compliance (`router.ts`)
-To protect internal cloud infrastructure and satisfy strict platform access policies, the perimeter is heavily guarded. 
-
-<p align="center">
-  <img src="./docs/images/Router.png" alt="Router Security Code Snippet" width="75%">
-</p>
-
-* **Implementation:** The incoming string is stripped down to its canonical phone number footprint and verified against a protected runtime array (`AUTHORIZED_SENDERS`). Unauthorized messages are dropped silently at the gate before consuming downstream AI tokens.
-
-### 🧠 4. Contextual Data Extraction (`gemini.ts`)
-Turning messy human dialogue into deterministic records requires pairing an LLM with strict response schemas.
-
-<p align="center">
-  <img src="./docs/images/WhatsApp Image 2026-07-01 at 02.13.29.jpeg" alt="WhatsApp Live Demo Screenshot" width="40%">
-  <img src="./docs/images/carbon (3).png" alt="Gemini JSON Output Schema" width="45%">
-</p>
-
-* **Implementation:** Leverages the Gemini SDK with enforced JSON schemas (`responseSchema`). When given phrases like *"Remind me next Tuesday..."*, the system automatically computes future dates anchored to the `Asia/Dubai` timezone and generates crisp, structured database keys, safely parsing missing parameters (like phone numbers) as empty strings to prevent schema validation failures.
-
-### 🛡️ 5. Defensive Data Sanitization (`sanitizer.ts`)
-Because data is synchronized directly with external-facing team spreadsheets, the application protects against CSV/Spreadsheet Formula Injection.
-
-<p align="center">
-  <img src="./docs/images/Sanitizer.png" alt="Sanitizer Logic Code Snippet" width="75%">
-</p>
-
-* **Implementation:** Any payload touching the database is processed by `escapeSpreadsheetFormula`. A regex pattern `/^[=+\-@]/` checks the first byte of incoming values. If an injection signature is discovered, the cell is prepended with a neutralizing single quote (`'`), rendering it as literal plain-text inside Google Sheets.
-
-### 📁 6. Dual-Write State Synchronization
-The architecture maintains complete separation of concerns between background worker states and operational user views.
-
-<p align="center">
-  <img src="./docs/images/firestore.png" alt="Cloud Firestore Document Lifecycle Tracking" width="70%">
-</p>
-
-* **Cloud Firestore:** Serves as the transactional operational memory, maintaining status keys (`pending`, `processing`, `sent`, `failed`), retry indexes, and locking metrics.
-* **Google Sheets CRM:** Functions as a human-readable ledger immediately accessible by internal office employees and field personnel without grant-level database access.
-
-### 🔄 7. Self-Healing Background Scheduler (`reminderCron.ts`)
-Real-world systems face unexpected processing lockups, network splits, and API timeouts. Vecta uses a fault-tolerant state-machine architecture.
-
-<p align="center">
-  <img src="./docs/images/Remindercron.png" alt="Reminder Cron Logic Code Snippet" width="75%">
-</p>
-
-* **Implementation:** The background engine scans for items with a state of `processing` that exceed a 3-minute lock window, alongside explicit `failed` transactions. If the transaction has failed permanently (`retryCount >= 3`), it drops into a **Dead-Letter Queue (DLQ)** for manual auditing. Otherwise, it increments the retry value and transparently re-injects the message into the parsing queue.
+```
++------------------------------------------------------------------------------------+
+|                             PROJECT A (Local Bot Engine)                           |
+|  - Baileys WhatsApp WebSocket Socket Gateway                                      |
+|  - Persistent Auth State in Firebase Realtime DB (whatsapp_sessions)               |
+|  - LID Authorization & Branch Directory (authorized_users)                         |
+|  - Atomic Idempotency & Zombie Recovery Queue (inbound_messages)                   |
+|  - Temporary Multimodal Session State (pending_approvals)                          |
++------------------------------------------------------------------------------------+
+                                           |
+                         IAM Application Default Credentials (ADC)
+                                           |
+                                           v
++------------------------------------------------------------------------------------+
+|                  PROJECT B (Remote Corporate Accounting System)                    |
+|  - Live Ledger: branches/{branchId}/live_ledger/{txId}                             |
+|  - Daily Metrics: branches/{branchId}/daily_stats/{date}                           |
+|  - Accountant Vault: branches/{branchId}/temp_vault_inventory/{noteValue}          |
+|  - CEO Vault: branches/{branchId}/vault_inventory/{noteValue}                       |
+|  - Denomination History: branches/{branchId}/daily_denominations/{date}            |
+|  - Audit Trail: branches/{branchId}/reversal_logs/{logId}                          |
++------------------------------------------------------------------------------------+
+```
 
 ---
 
-## 📦 Technology Stack & Environment
+## 🔥 Key Feature Modules
 
-* **Runtime:** Node.js (v20+) with TypeScript
-* **WhatsApp Gateway:** Baileys Core (WebSocket Layer)
-* **AI Processing Engine:** Gemini 2.5 Flash API (Multimodal OCR & Text Parsing)
-* **Databases:** Google Cloud Firestore & Firebase Realtime DB
-* **Business Interface:** Google Sheets Enterprise API
-* **Infrastructure Host:** Google Cloud Platform (Compute Engine `e2-medium`)
-* **DevOps / CI/CD:** GitHub Actions, Docker, Google Artifact Registry
+### 1. ⚡ Cross-Project Automated Ledger Reversal Engine
+- **The Problem Solved**: Eliminates the tedious, error-prone manual task of logging into Firebase/BigQuery consoles to find, delete, and adjust multi-collection ledger entries and physical currency inventory.
+- **Image/Caption OCR Extraction**: Users send a cash ledger receipt image or brief message (e.g., *"remove desk entry pending ceo 500 AED Johny"*). Gemini 2.5 Flash extracts date, entity name, cash total, and denomination breakdowns (e.g. 5x 500 AED, 10x 100 AED notes).
+- **Multi-Branch Concurrent Search**: Checks user branch permissions from Project A (`authorized_users/{cleanLid}`) and queries all authorized branch databases in Project B simultaneously.
+- **Smart Fallback Matching**: Bypasses human spelling variations (e.g. `JOHNY` vs `JOHNNY`) if a unique exact-amount match exists for today's transactions.
+- **Atomic 5-Collection Batch Deletion**: Upon user reply of `"YES"`, an atomic batch transaction:
+  1. Deletes the target document from `live_ledger`.
+  2. Decrements `daily_stats/{date}` inflow metrics.
+  3. Automatically decrements currency note counts in `temp_vault_inventory` (Accountant Vault for `PENDING CEO`) or `vault_inventory` (CEO Vault for `APPROVED`).
+  4. Rolls back `daily_denominations/{date}` snapshot records.
+  5. Appends an unalterable audit log to `reversal_logs` recording the executor's WhatsApp LID.
+
+### 2. 📇 Multimodal Sales CRM & Business Card Capture
+- **In-Memory OCR Extraction**: Photos of business cards or store fronts are processed directly in memory buffer with Gemini 2.5 Flash Vision, returning company name, contact number, and confidence score.
+- **Human-in-the-Loop (HITL) Gate**: Caches extracted details in `pending_approvals/{userId}`. Only upon receiving confirmation (`"Approve"`, `"Save"`, `"OK"`) is the payload committed.
+- **Spreadsheet Formula Defense**: Inputs are sanitized with `escapeSpreadsheetFormula()` to strip injection triggers (`=`, `+`, `-`, `@`) before appending to Google Sheets CRM.
+
+### 3. ⏰ Contextual Task & Meeting Scheduler
+- **Temporal Date Math**: Parses relative expressions (e.g. *"Remind me next Tuesday at 3 PM"*) and computes explicit ISO timestamps anchored to **Gulf Standard Time (`Asia/Dubai`)**.
+- **Automated Reminder Cron Engine**: A high-frequency worker checks pending reminders every 60 seconds and dispatches meeting notifications (30 minutes prior) or daily follow-ups.
+
+### 4. 🤖 Anti-Bot "Human Mimic" Telemetry Choreography
+- Protects WhatsApp accounts against automated bot detection heuristics by simulating realistic typing sequences:
+  `Read Receipt (Blue Ticks)` ➔ `Reading Pause (1.2s)` ➔ `Typing Leg 1 (45%)` ➔ `Thinking Pause (0.7s)` ➔ `Typing Leg 2 (55%)` ➔ `Drop Status` ➔ `Send Message`.
+- Employs a 3-turn delay memory buffer with random jitter calculation to prevent repetitive interval signatures.
+
+### 5. 🛡️ Self-Healing Zombie Queue & Resilient State
+- **Stateless Cloud Run Architecture**: Stores Baileys WhatsApp authentication credentials in Firebase Realtime DB, allowing container restarts without re-scanning QR codes.
+- **Zombie Recovery Worker**: Scans `inbound_messages` every minute for transactions locked in `processing` (> 3 mins) or `failed`. Automatically re-queues items up to 3 retries before dead-lettering to `dead_letter`.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Runtime**: Node.js (v20+ Alpine) with TypeScript 5.4
+- **WhatsApp Client**: `@whiskeysockets/baileys` v6.6
+- **AI Processing**: Google Gemini 2.5 Flash API (`@google/generative-ai`)
+- **Databases**: Google Cloud Firestore & Firebase Realtime DB (Dual Project)
+- **CRM Integration**: Google Sheets Enterprise API v4
+- **Containerization**: Multi-stage Docker Dockerfile (Alpine Linux)
+
+---
+
+## 📋 System Requirements & Environment Setup
+
+Create a `.env` file in the root directory:
+
+```env
+# Runtime & Timezone
+NODE_ENV=production
+PORT=8080
+TZ=Asia/Dubai
+
+# WhatsApp Session
+WA_SESSION_ID=vecta-prod-session-01
+
+# Project A (Local Bot Database)
+FIREBASE_PROJECT_ID=your-bot-firebase-project-id
+FIREBASE_DATABASE_URL=https://your-bot-firebase-project-id-default-rtdb.firebaseio.com
+GCP_SERVICE_ACCOUNT_PATH=./src/config/whatsapp-assistant-sa.json
+
+# Project B (Remote Corporate Cash Management System)
+FERRARI_FIRESTORE_PROJECT_ID=your-ferrari-firestore-project-id
+FERRARI_BQ_PROJECT_ID=your-ferrari-bq-project-id
+FERRARI_BQ_DATASET=cash_management
+FERRARI_BQ_TABLE=live_ledger
+
+# External Services
+GOOGLE_SHEET_ID=your-google-sheet-id
+GEMINI_API_KEY=your-gemini-api-key
+DEFAULT_REMINDER_DAYS=2
+```
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Local Development
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode (watch mode)
+npm run dev
+
+# Build TypeScript to /dist
+npm run build
+
+# Start production runtime
+npm start
+```
+
+### 2. Docker Deployment
+```bash
+# Build multi-stage production image
+docker build -t whatsapp-ai-assistant .
+
+# Run container with volume mount for authentication cache
+docker run -d \
+  --name whatsapp-bot \
+  -p 8080:8080 \
+  --env-file .env \
+  --memory="3.5g" \
+  whatsapp-ai-assistant
+```
+
+---
+
+## 📄 License
+ISC License. Developed for Enterprise Automation.
